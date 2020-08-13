@@ -1,0 +1,10 @@
+/.vscode/
+/env/
+/venv/
+__pycache__/
+*.pyc
+*.egg-info/
+/build/
+/dist/
+.style.yapf
+.pylintrc
