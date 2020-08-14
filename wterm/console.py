@@ -1,10 +1,11 @@
 from typing import Any, Dict, IO, List, NoReturn, Tuple, Union
+from functools import partialmethod
 import sys
 import re
 
 _ansi_re: re.Pattern = re.compile(r"\033\[[;?0-9]*[a-zA-Z]")
 
-_ansi_colors: Dict = dict(
+_ansi_colors: Dict[str, int] = dict(
     black=30,
     red=31,
     green=32,
@@ -38,9 +39,12 @@ def _interpret_color(color: Union[int, Tuple, List], offset: int = 0) -> str:
     return str(_ansi_colors[color] + offset)
 
 
+_style_keys: List[str] = ['bg', 'fg', 'bold', 'dim', 'underline', 'blink', 'reverse', 'reset']
+
+
 class Console:
 
-    defaults: Dict = dict(
+    defaults: Dict[str, Any] = dict(
         stdout=sys.stdout,
         stderr=sys.stderr,
         tty=True,
@@ -98,6 +102,10 @@ class Console:
 
             if not stream.isatty() or not kwargs.pop('colors_enabled', self._colors_enabled):
                 message = self.strip_style(message)
+            else:
+                style_args = {k: v for (k, v) in kwargs if k in _style_keys}
+                if len(style_args) > 0:
+                    message = self.style(message, **style_args)
 
             stream.write(message)
             endl = kwargs.pop('endl', self._endl)
@@ -149,12 +157,16 @@ class Console:
 
         if bold is not None:
             bits.append(f'\033[{1 if bold else 22}m')
+
         if dim is not None:
             bits.append(f'\033[{2 if dim else 22}m')
+
         if underline is not None:
             bits.append(f'\033[{4 if underline else 24}m')
+
         if blink is not None:
             bits.append(f'\033[{5 if blink else 25}m')
+
         if reverse is not None:
             bits.append(f'\033[{7 if reverse else 27}m')
 
@@ -163,3 +175,11 @@ class Console:
             bits.append(_ansi_reset_all)
 
         return ''.join(bits)
+
+
+def _setup_console_attrs() -> NoReturn:
+    for color in _ansi_colors:
+        setattr(Console, color, partialmethod(Console.style, fg=color))
+
+
+_setup_console_attrs()
