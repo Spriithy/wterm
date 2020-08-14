@@ -98,8 +98,8 @@ class Console:
             if kwargs.pop('prefix', self._prefix):
                 if callable(self._prefix):
                     prefix = self._prefix()
-                elif isinstance(self._prefix, str):
-                    prefix = self._prefix
+                elif self._prefix:
+                    prefix = str(self._prefix)
 
             message = f'{prefix} {message}' if prefix else message
 
