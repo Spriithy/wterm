@@ -52,37 +52,28 @@ class Console:
         prefix=None,
         colors_enabled=True,
         endl='\n',
+        debug_prefix=None,
+        info_prefix=None,
+        warning_prefix='[warning] ',
+        error_prefix='[error] ',
     )
 
     def __init__(self, **kwargs: Any) -> NoReturn:
         for (attr, value) in Console.defaults.items():
             setattr(self, f'_{attr}', value)
+
+        for color in _ansi_colors:
+            setattr(self, color, partialmethod(self.style, fg=color))
+
         self.configure(**kwargs)
 
     def restore_defaults(self) -> NoReturn:
         self.configure(**Console.defaults)
 
     def configure(self, **kwargs: Any) -> NoReturn:
-        if 'stdout' in kwargs:
-            self._stdout = kwargs.pop('stdout')
-
-        if 'stderr' in kwargs:
-            self._stderr = kwargs.pop('stderr')
-
-        if 'tty' in kwargs:
-            self._tty = kwargs.pop('tty')
-
-        if 'notty' in kwargs:
-            self._notty = kwargs.pop('notty')
-
-        if 'colors_enabled' in kwargs:
-            self._colors_enabled = kwargs.pop('colors_enabled')
-
-        if 'prefix' in kwargs:
-            self._prefix = kwargs.pop('prefix')
-
-        if 'endl' in kwargs:
-            self._endl = kwargs.pop('endl')
+        for attr in Console.defaults:
+            if attr in kwargs:
+                setattr(self, f'_{attr}', kwargs.pop(attr))
 
     def _print(self, stream: IO, message: str, **kwargs: Any) -> NoReturn:
         if None in (stream, message):
@@ -115,16 +106,23 @@ class Console:
             stream.write(endl)
 
     def debug(self, message: str, **kwargs: Any) -> NoReturn:
+        message = f'{self._debug_prefix}{message}' if self._debug_prefix else message
         self._print(self._stdout, message, **kwargs)
 
     def info(self, message: str, **kwargs: Any) -> NoReturn:
+        message = f'{self._info_prefix}{message}' if self._info_prefix else message
         self._print(self._stdout, message, **kwargs)
 
+    # log is an alias for info, to allow for easy console.log(...)
+    log = info
+
     def warning(self, message: str, **kwargs: Any) -> NoReturn:
-        self._print(self._stderr, f'warning: {message}', **kwargs)
+        message = f'{self._warning_prefix} {message}' if self._warning_prefix else message
+        self._print(self._stderr, message, **kwargs)
 
     def error(self, message: str, **kwargs: Any) -> NoReturn:
-        self._print(self._stderr, f'error: {message}', **kwargs)
+        message = f'{self._error_prefix} {message}' if self._error_prefix else message
+        self._print(self._stderr, message, **kwargs)
 
     def strip_style(self, message: str) -> str:
         return _ansi_re.sub('', message)
@@ -178,11 +176,3 @@ class Console:
             bits.append(_ansi_reset_all)
 
         return ''.join(bits)
-
-
-def _setup_console_attrs() -> NoReturn:
-    for color in _ansi_colors:
-        setattr(Console, color, partialmethod(Console.style, fg=color))
-
-
-_setup_console_attrs()
