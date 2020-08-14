@@ -89,8 +89,8 @@ class Console:
             return
 
         stream_tty = stream.isatty()
-        print_tty = self._tty and kwargs.pop('tty', True)
-        print_notty = self._notty and kwargs.pop('notty', True)
+        print_tty = kwargs.pop('tty', True) if self._tty else kwargs.pop('tty', False)
+        print_notty = kwargs.pop('notty', True) if self._notty else kwargs.pop('notty', False)
 
         if (stream_tty and print_tty) or (not stream_tty and print_notty):
             prefix = None
