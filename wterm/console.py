@@ -63,28 +63,31 @@ class Console:
         self.configure(**Console.defaults)
 
     def configure(self, **kwargs: Any) -> NoReturn:
-        if stdout := kwargs.pop('stdout', None):
-            self._stdout = stdout
+        if 'stdout' in kwargs:
+            self._stdout = kwargs.pop('stdout')
 
-        if stderr := kwargs.pop('stderr', None):
-            self._stderr = stderr
+        if 'stderr' in kwargs:
+            self._stderr = kwargs.pop('stderr')
 
-        if tty := kwargs.pop('tty', None):
-            self._tty = tty
+        if 'tty' in kwargs:
+            self._tty = kwargs.pop('tty')
 
-        if notty := kwargs.pop('notty', None):
-            self._notty = notty
+        if 'notty' in kwargs:
+            self._notty = kwargs.pop('notty')
 
-        if colors_enabled := kwargs.pop('colors_enabled', None):
-            self._colors_enabled = colors_enabled
+        if 'colors_enabled' in kwargs:
+            self._colors_enabled = kwargs.pop('colors_enabled')
 
-        if prefix := kwargs.pop('prefix', None):
-            self._prefix = prefix
+        if 'prefix' in kwargs:
+            self._prefix = kwargs.pop('prefix')
 
-        if endl := kwargs.pop('endl', None):
-            self._endl = endl
+        if 'endl' in kwargs:
+            self._endl = kwargs.pop('endl')
 
     def _print(self, stream: IO, message: str, **kwargs: Any) -> NoReturn:
+        if None in (stream, message):
+            return
+
         stream_tty = stream.isatty()
         print_tty = self._tty and kwargs.pop('tty', True)
         print_notty = self._notty and kwargs.pop('notty', True)
@@ -103,7 +106,7 @@ class Console:
             if not stream.isatty() or not kwargs.pop('colors_enabled', self._colors_enabled):
                 message = self.strip_style(message)
             else:
-                style_args = {k: v for (k, v) in kwargs if k in _style_keys}
+                style_args = {k: v for (k, v) in kwargs.items() if k in _style_keys}
                 if len(style_args) > 0:
                     message = self.style(message, **style_args)
 
