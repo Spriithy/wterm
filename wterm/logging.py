@@ -41,6 +41,9 @@ class Level:
 
         raise ValueError(f'Expected int, str or logging.Level, got {type(other)}.')
 
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
 
 DEBUG = Level('debug', 0)
 INFO = Level('info', 1)
