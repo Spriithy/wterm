@@ -1,4 +1,6 @@
-from typing import Any, Dict, IO, Tuple, List, NoReturn
+from typing import Any, Dict, IO, Tuple, NoReturn
+import datetime
+
 from .console import Console
 
 
@@ -54,10 +56,54 @@ ERROR = Level('error', 3)
 class Logger(Console):
 
     defaults: Dict[str, Any] = dict(
-        format='{timestamp} {name} {level} - {message}',
+        format='{timestamp} {name} [{level}] {message}',
         level=INFO,
+        name='root',
     )
 
-    def __init__(self, name: str, **kwargs: Any) -> NoReturn:
-        super(Logger, self).__init__(**kwargs)
-        self._name = name
+    def __init__(self, **kwargs: Any) -> NoReturn:
+        self.configure(**Logger.defaults)
+        super().__init__(**kwargs)
+        self.configure(**kwargs)
+
+    def restore_defaults(self) -> NoReturn:
+        super().restore_defaults()
+        self.configure(**Logger.defaults)
+
+    def configure(self, **kwargs: Any) -> NoReturn:
+        # Do not allow users to customise console prefix for Logger instances.
+        # This prevents messing up the Logger.format output which users expect.
+        kwargs.pop('prefix', None)
+
+        for attr in Logger.defaults:
+            if attr in kwargs:
+                setattr(self, f'_{attr}', kwargs.pop(attr))
+
+        super().configure(**kwargs)
+
+    def _timestamp(self) -> str:
+        return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+    def _print(self, stream: IO, level: Level, message: str, **kwargs: Any) -> NoReturn:
+        message = self._format.format(
+            timestamp=self._timestamp(),
+            name=self._name,
+            level=level.name,
+            message=message,
+        )
+        super()._print(stream, message, **kwargs)
+
+    def debug(self, message: str, **kwargs: Any) -> NoReturn:
+        self._print(self._stdout, DEBUG, message, **kwargs)
+
+    def info(self, message: str, **kwargs: Any) -> NoReturn:
+        self._print(self._stdout, INFO, message, **kwargs)
+
+    # log is an alias for info, to allow for easy console.log(...)
+    log = info
+
+    def warning(self, message: str, **kwargs: Any) -> NoReturn:
+        self._print(self._stderr, WARNING, message, **kwargs)
+
+    def error(self, message: str, **kwargs: Any) -> NoReturn:
+        self._print(self._stderr, ERROR, message, **kwargs)
