@@ -59,6 +59,7 @@ class Logger(Console):
         format='{timestamp} {name} [{level}] {message}',
         level=INFO,
         name='root',
+        colors_enabled=False,
     )
 
     def __init__(self, **kwargs: Any) -> NoReturn:
