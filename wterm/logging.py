@@ -85,13 +85,14 @@ class Logger(Console):
         return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
     def _print(self, stream: IO, level: Level, message: str, **kwargs: Any) -> NoReturn:
-        message = self._format.format(
-            timestamp=self._timestamp(),
-            name=self._name,
-            level=level.name,
-            message=message,
-        )
-        super()._print(stream, message, **kwargs)
+        if level > self._level or level == self._level:
+            message = self._format.format(
+                timestamp=self._timestamp(),
+                name=self._name,
+                level=level.name,
+                message=message,
+            )
+            super()._print(stream, message, **kwargs)
 
     def debug(self, message: str, **kwargs: Any) -> NoReturn:
         self._print(self._stdout, DEBUG, message, **kwargs)
