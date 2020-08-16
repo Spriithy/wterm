@@ -1,7 +1,7 @@
 from typing import Any, Dict, IO, Tuple, NoReturn
 import datetime
 
-from .console import Console
+from .console import Console, _ansi_colors
 
 
 class Level:
@@ -66,6 +66,9 @@ class Logger(Console):
         self.configure(**Logger.defaults)
         super().__init__(**kwargs)
         self.configure(**kwargs)
+
+        for color in _ansi_colors:
+            delattr(self, color)
 
     def restore_defaults(self) -> NoReturn:
         super().restore_defaults()
