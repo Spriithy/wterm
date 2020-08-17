@@ -89,6 +89,9 @@ class Logger(Console):
         return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
     def _print(self, stream: IO, level: Level, message: str, **kwargs: Any) -> NoReturn:
+        if not self._level:
+            return
+
         if level > self._level or level == self._level:
             message = self._format.format(
                 timestamp=self._timestamp(),
@@ -112,3 +115,11 @@ class Logger(Console):
 
     def error(self, message: str, **kwargs: Any) -> NoReturn:
         self._print(self._stderr, ERROR, message, **kwargs)
+
+
+class FileLogger(Logger):
+
+    defaults: Dict[str, Any] = dict(filename=None)
+
+    def __init__(self, **kwargs: Any) -> NoReturn:
+        pass

@@ -5,7 +5,7 @@ SHELL = /bin/bash
 .PHONY: build
 build:
 	@echo "Building..."
-	python3 setup.py bdist_wheel
+	python3 setup.py sdist bdist_wheel
 
 #-------------------------------------------------------------------------------
 
@@ -25,6 +25,18 @@ uninstall:
 
 .PHONY: update
 update: uninstall install
+
+#-------------------------------------------------------------------------------
+
+.PHONY: deploy
+deploy:
+	@echo "Deploying..."
+	twine upload dist/*
+
+#-------------------------------------------------------------------------------
+
+.PHONY: release
+release: clean build deploy clean
 
 #-------------------------------------------------------------------------------
 
