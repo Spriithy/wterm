@@ -158,7 +158,6 @@ class FileLogger(Logger):
 
         if isinstance(tee_err, bool):
             self._teeerr = sys.stderr if tee_err else None
-            print('salut')
         elif isinstance(tee_err, io.TextIOBase):
             self._teeerr = tee_err
 
@@ -168,7 +167,6 @@ class FileLogger(Logger):
         elif isinstance(tee, io.TextIOBase):
             self._teeout = tee
             self._teeerr = tee
-            print('salut2')
 
         if filename:
             path = os.path.abspath(filename)
