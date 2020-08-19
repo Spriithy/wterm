@@ -62,9 +62,6 @@ class Console:
         for (attr, value) in Console.defaults.items():
             setattr(self, f'_{attr}', value)
 
-        for color in _ansi_colors:
-            setattr(self, color, partialmethod(self.style, fg=color))
-
         self.configure(**kwargs)
 
     def restore_defaults(self) -> NoReturn:
@@ -176,3 +173,16 @@ class Console:
             bits.append(_ansi_reset_all)
 
         return ''.join(bits)
+
+
+def _init_console() -> NoReturn:
+    if hasattr(Console, '_init'):
+        return
+
+    for color in _ansi_colors:
+        setattr(Console, color, partialmethod(Console.style, fg=color))
+
+    setattr(Console, '_init', True)
+
+
+_init_console()

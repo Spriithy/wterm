@@ -1,5 +1,6 @@
-from typing import Any, Dict, IO, NoReturn
+from typing import Any, Dict, IO, NoReturn, Union
 import os
+import io
 import sys
 import datetime
 
@@ -26,6 +27,9 @@ class Level:
 
         raise ValueError(f'Expected int, str or logging.Level, got {type(other)}.')
 
+    def __le__(self, other: Any) -> bool:
+        return self < other or self == other
+
     def __gt__(self, other: Any) -> bool:
         if isinstance(other, int):
             return self.level > other
@@ -35,6 +39,9 @@ class Level:
             return self.level > other.level
 
         raise ValueError(f'Expected int, str or logging.Level, got {type(other)}.')
+
+    def __ge__(self, other: Any) -> bool:
+        return self > other or self == other
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, int):
@@ -48,6 +55,9 @@ class Level:
 
     def __hash__(self) -> int:
         return hash((self.name, self.level))
+
+    def __str__(self) -> str:
+        return f'<Level name={self.name}({self.level})>'
 
 
 DEBUG = Level('debug', 0)
@@ -69,9 +79,6 @@ class Logger(Console):
         self.configure(**Logger.defaults)
         super().__init__(**kwargs)
         self.configure(**kwargs)
-
-        for color in _ansi_colors:
-            delattr(self, color)
 
         self.levels: Dict[Level, IO] = {
             DEBUG: self._stdout,
@@ -102,7 +109,7 @@ class Logger(Console):
         if not self._level:
             return
 
-        if level > self._level or level == self._level:
+        if level >= self._level:
             message = self._format.format(
                 timestamp=self._timestamp(),
                 name=self._name,
@@ -129,11 +136,39 @@ class Logger(Console):
 
 class FileLogger(Logger):
 
-    def __init__(self, filename: str = None, out: IO = None, err: IO = None, **kwargs: Any) -> NoReturn:
+    def __init__(self,
+                 filename: str = None,
+                 out: IO = None,
+                 err: IO = None,
+                 tee: Union[bool, IO] = None,
+                 tee_out: Union[bool, IO] = None,
+                 tee_err: Union[bool, IO] = None,
+                 **kwargs: Any) -> NoReturn:
         super().__init__(**kwargs)
         self._filename = filename
         self._stdout = out
         self._stderr = err
+        self._teeout = None
+        self._teeerr = None
+
+        if isinstance(tee_out, bool):
+            self._teeout = sys.stdout if tee_out else None
+        elif isinstance(tee_out, io.TextIOBase):
+            self._teeout = tee_out
+
+        if isinstance(tee_err, bool):
+            self._teeerr = sys.stderr if tee_err else None
+            print('salut')
+        elif isinstance(tee_err, io.TextIOBase):
+            self._teeerr = tee_err
+
+        if isinstance(tee, bool):
+            self._teeout = sys.stdout if tee else None
+            self._teeerr = sys.stderr if tee else None
+        elif isinstance(tee, io.TextIOBase):
+            self._teeout = tee
+            self._teeerr = tee
+            print('salut2')
 
         if filename:
             path = os.path.abspath(filename)
@@ -156,3 +191,14 @@ class FileLogger(Logger):
             WARNING: self._stderr,
             ERROR: self._stderr,
         }
+
+    def _print(self, stream: IO, level: Level, message: str, **kwargs: Any) -> NoReturn:
+        if not self._level:
+            return
+
+        if level > self._level or level == self._level:
+            super()._print(stream, level, message, **kwargs)
+
+            tee = self._teeout if level <= INFO else self._teeerr
+            if tee:
+                super()._print(tee, level, message, **kwargs)
