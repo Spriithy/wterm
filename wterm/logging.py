@@ -1,4 +1,5 @@
-from typing import Any, Dict, IO, Tuple, NoReturn
+from typing import Any, Dict, IO, NoReturn
+import sys
 import datetime
 
 from .console import Console, _ansi_colors
@@ -8,9 +9,10 @@ class Level:
 
     _levels: Dict[str, Any] = dict()
 
-    def __init__(self, name: str, level: int) -> NoReturn:
+    def __init__(self, name: str, level: int, stream: IO = sys.stdout) -> NoReturn:
         self.name = name
         self.level = level
+        self.stream = stream
         Level._levels[name] = self
 
     def __lt__(self, other: Any) -> bool:
@@ -47,10 +49,10 @@ class Level:
         return not self.__eq__(other)
 
 
-DEBUG = Level('debug', 0)
-INFO = Level('info', 1)
-WARNING = Level('warning', 2)
-ERROR = Level('error', 3)
+DEBUG = Level('debug', 0, sys.stdout)
+INFO = Level('info', 1, sys.stdout)
+WARNING = Level('warning', 2, sys.stderr)
+ERROR = Level('error', 3, sys.stderr)
 
 
 class Logger(Console):
@@ -101,20 +103,20 @@ class Logger(Console):
             )
             super()._print(stream, message, **kwargs)
 
+    def log(self, level: Level, message: str, **kwargs: Any) -> NoReturn:
+        self._print(level.stream, level, message, **kwargs)
+
     def debug(self, message: str, **kwargs: Any) -> NoReturn:
-        self._print(self._stdout, DEBUG, message, **kwargs)
+        self.log(DEBUG, message, **kwargs)
 
     def info(self, message: str, **kwargs: Any) -> NoReturn:
-        self._print(self._stdout, INFO, message, **kwargs)
-
-    # log is an alias for info, to allow for easy console.log(...)
-    log = info
+        self.log(INFO, message, **kwargs)
 
     def warning(self, message: str, **kwargs: Any) -> NoReturn:
-        self._print(self._stderr, WARNING, message, **kwargs)
+        self.log(WARNING, message, **kwargs)
 
     def error(self, message: str, **kwargs: Any) -> NoReturn:
-        self._print(self._stderr, ERROR, message, **kwargs)
+        self.log(ERROR, message, **kwargs)
 
 
 class FileLogger(Logger):

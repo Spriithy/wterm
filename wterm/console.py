@@ -105,6 +105,9 @@ class Console:
             endl = kwargs.pop('endl', self._endl)
             stream.write(endl)
 
+    def log(self, message: str, **kwargs: Any) -> NoReturn:
+        self._print(self._stdout, message, **kwargs)
+
     def debug(self, message: str, **kwargs: Any) -> NoReturn:
         message = f'{self._debug_prefix}{message}' if self._debug_prefix else message
         self._print(self._stdout, message, **kwargs)
@@ -112,9 +115,6 @@ class Console:
     def info(self, message: str, **kwargs: Any) -> NoReturn:
         message = f'{self._info_prefix}{message}' if self._info_prefix else message
         self._print(self._stdout, message, **kwargs)
-
-    # log is an alias for info, to allow for easy console.log(...)
-    log = info
 
     def warning(self, message: str, **kwargs: Any) -> NoReturn:
         message = f'{self._warning_prefix} {message}' if self._warning_prefix else message
