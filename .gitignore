@@ -8,3 +8,7 @@ __pycache__/
 /dist/
 .style.yapf
 .pylintrc
+*.log
+*.out
+*.err
+
