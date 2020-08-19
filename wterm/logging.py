@@ -1,4 +1,5 @@
 from typing import Any, Dict, IO, NoReturn
+import os
 import sys
 import datetime
 
@@ -45,14 +46,14 @@ class Level:
 
         raise ValueError(f'Expected int, str or logging.Level, got {type(other)}.')
 
-    def __ne__(self, other: Any) -> bool:
-        return not self.__eq__(other)
+    def __hash__(self) -> int:
+        return hash((self.name, self.level))
 
 
-DEBUG = Level('debug', 0, sys.stdout)
-INFO = Level('info', 1, sys.stdout)
-WARNING = Level('warning', 2, sys.stderr)
-ERROR = Level('error', 3, sys.stderr)
+DEBUG = Level('debug', 0)
+INFO = Level('info', 1)
+WARNING = Level('warning', 2)
+ERROR = Level('error', 3)
 
 
 class Logger(Console):
@@ -71,6 +72,13 @@ class Logger(Console):
 
         for color in _ansi_colors:
             delattr(self, color)
+
+        self.levels: Dict[Level, IO] = {
+            DEBUG: self._stdout,
+            INFO: self._stdout,
+            WARNING: self._stderr,
+            ERROR: self._stderr,
+        }
 
     def restore_defaults(self) -> NoReturn:
         super().restore_defaults()
@@ -104,7 +112,7 @@ class Logger(Console):
             super()._print(stream, message, **kwargs)
 
     def log(self, level: Level, message: str, **kwargs: Any) -> NoReturn:
-        self._print(level.stream, level, message, **kwargs)
+        self._print(self.levels[level], level, message, **kwargs)
 
     def debug(self, message: str, **kwargs: Any) -> NoReturn:
         self.log(DEBUG, message, **kwargs)
@@ -121,7 +129,30 @@ class Logger(Console):
 
 class FileLogger(Logger):
 
-    defaults: Dict[str, Any] = dict(filename=None)
+    def __init__(self, filename: str = None, out: IO = None, err: IO = None, **kwargs: Any) -> NoReturn:
+        super().__init__(**kwargs)
+        self._filename = filename
+        self._stdout = out
+        self._stderr = err
 
-    def __init__(self, **kwargs: Any) -> NoReturn:
-        pass
+        if filename:
+            path = os.path.abspath(filename)
+            log_dir = os.path.dirname(path)
+            log_file = os.path.basename(path)
+            os.makedirs(log_dir, exist_ok=True)
+            self._stdout = open(log_file, 'a+')
+            self._stderr = self._stdout
+
+        if out and not err:
+            self._stdout = out
+            self._stderr = out
+
+        if err:
+            self._stderr = err
+
+        self.levels: Dict[Level, IO] = {
+            DEBUG: self._stdout,
+            INFO: self._stdout,
+            WARNING: self._stderr,
+            ERROR: self._stderr,
+        }
