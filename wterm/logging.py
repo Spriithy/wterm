@@ -4,7 +4,7 @@ import io
 import sys
 import datetime
 
-from .console import Console, _ansi_colors
+from .console import Console
 
 
 class Level:
