@@ -54,8 +54,8 @@ class Console:
         endl='\n',
         debug_prefix=None,
         info_prefix=None,
-        warning_prefix='[warning] ',
-        error_prefix='[error] ',
+        warning_prefix=None,
+        error_prefix=None,
     )
 
     def __init__(self, **kwargs: Any) -> NoReturn:
