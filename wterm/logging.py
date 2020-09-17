@@ -11,7 +11,7 @@ class Level:
 
     _levels: Dict[str, Any] = dict()
 
-    def __init__(self, name: str, level: int, stream: IO = sys.stdout) -> NoReturn:
+    def __init__(self, name: str, level: int, stream: IO = sys.stdout) -> None:
         self.name = name
         self.level = level
         self.stream = stream
@@ -75,7 +75,7 @@ class Logger(Console):
         colors_enabled=False,
     )
 
-    def __init__(self, **kwargs: Any) -> NoReturn:
+    def __init__(self, **kwargs: Any) -> None:
         self.configure(**Logger.defaults)
         super().__init__(**kwargs)
         self.configure(**kwargs)
@@ -87,11 +87,11 @@ class Logger(Console):
             ERROR: self._stderr,
         }
 
-    def restore_defaults(self) -> NoReturn:
+    def restore_defaults(self) -> None:
         super().restore_defaults()
         self.configure(**Logger.defaults)
 
-    def configure(self, **kwargs: Any) -> NoReturn:
+    def configure(self, **kwargs: Any) -> None:
         # Do not allow users to customise console prefix for Logger instances.
         # This prevents messing up the Logger.format output which users expect.
         kwargs.pop('prefix', None)
@@ -105,7 +105,7 @@ class Logger(Console):
     def _timestamp(self) -> str:
         return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
-    def _print(self, stream: IO, level: Level, message: str, **kwargs: Any) -> NoReturn:
+    def _print(self, stream: IO, level: Level, message: str, **kwargs: Any) -> None:
         if not self._level:
             return
 
@@ -118,19 +118,19 @@ class Logger(Console):
             )
             super()._print(stream, message, **kwargs)
 
-    def log(self, level: Level, message: str, **kwargs: Any) -> NoReturn:
+    def log(self, level: Level, message: str, **kwargs: Any) -> None:
         self._print(self.levels[level], level, message, **kwargs)
 
-    def debug(self, message: str, **kwargs: Any) -> NoReturn:
+    def debug(self, message: str, **kwargs: Any) -> None:
         self.log(DEBUG, message, **kwargs)
 
-    def info(self, message: str, **kwargs: Any) -> NoReturn:
+    def info(self, message: str, **kwargs: Any) -> None:
         self.log(INFO, message, **kwargs)
 
-    def warning(self, message: str, **kwargs: Any) -> NoReturn:
+    def warning(self, message: str, **kwargs: Any) -> None:
         self.log(WARNING, message, **kwargs)
 
-    def error(self, message: str, **kwargs: Any) -> NoReturn:
+    def error(self, message: str, **kwargs: Any) -> None:
         self.log(ERROR, message, **kwargs)
 
 
@@ -143,7 +143,7 @@ class FileLogger(Logger):
                  tee: Union[bool, IO] = None,
                  tee_out: Union[bool, IO] = None,
                  tee_err: Union[bool, IO] = None,
-                 **kwargs: Any) -> NoReturn:
+                 **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self._filename = filename
         self._stdout = out
@@ -190,7 +190,7 @@ class FileLogger(Logger):
             ERROR: self._stderr,
         }
 
-    def _print(self, stream: IO, level: Level, message: str, **kwargs: Any) -> NoReturn:
+    def _print(self, stream: IO, level: Level, message: str, **kwargs: Any) -> None:
         if not self._level:
             return
 

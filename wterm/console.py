@@ -58,21 +58,21 @@ class Console:
         error_prefix=None,
     )
 
-    def __init__(self, **kwargs: Any) -> NoReturn:
+    def __init__(self, **kwargs: Any) -> None:
         for (attr, value) in Console.defaults.items():
             setattr(self, f'_{attr}', value)
 
         self.configure(**kwargs)
 
-    def restore_defaults(self) -> NoReturn:
+    def restore_defaults(self) -> None:
         self.configure(**Console.defaults)
 
-    def configure(self, **kwargs: Any) -> NoReturn:
+    def configure(self, **kwargs: Any) -> None:
         for attr in Console.defaults:
             if attr in kwargs:
                 setattr(self, f'_{attr}', kwargs.pop(attr))
 
-    def _print(self, stream: IO, message: str, **kwargs: Any) -> NoReturn:
+    def _print(self, stream: IO, message: str, **kwargs: Any) -> None:
         if None in (stream, message):
             return
 
@@ -102,23 +102,27 @@ class Console:
             endl = kwargs.pop('endl', self._endl)
             stream.write(endl)
 
-    def log(self, message: str, **kwargs: Any) -> NoReturn:
+    def log(self, message: str, **kwargs: Any) -> None:
         self._print(self._stdout, message, **kwargs)
 
-    def debug(self, message: str, **kwargs: Any) -> NoReturn:
-        message = f'{self._debug_prefix}{message}' if self._debug_prefix else message
+    def debug(self, message: str, **kwargs: Any) -> None:
+        if kwargs.pop('prefix', True):
+            message = f'{self._debug_prefix}{message}' if self._debug_prefix else message
         self._print(self._stdout, message, **kwargs)
 
-    def info(self, message: str, **kwargs: Any) -> NoReturn:
-        message = f'{self._info_prefix}{message}' if self._info_prefix else message
+    def info(self, message: str, **kwargs: Any) -> None:
+        if kwargs.pop('prefix', True):
+            message = f'{self._info_prefix}{message}' if self._info_prefix else message
         self._print(self._stdout, message, **kwargs)
 
-    def warning(self, message: str, **kwargs: Any) -> NoReturn:
-        message = f'{self._warning_prefix} {message}' if self._warning_prefix else message
+    def warning(self, message: str, **kwargs: Any) -> None:
+        if kwargs.pop('prefix', True):
+            message = f'{self._warning_prefix} {message}' if self._warning_prefix else message
         self._print(self._stderr, message, **kwargs)
 
-    def error(self, message: str, **kwargs: Any) -> NoReturn:
-        message = f'{self._error_prefix} {message}' if self._error_prefix else message
+    def error(self, message: str, **kwargs: Any) -> None:
+        if kwargs.pop('prefix', True):
+            message = f'{self._error_prefix} {message}' if self._error_prefix else message
         self._print(self._stderr, message, **kwargs)
 
     def strip_style(self, message: str) -> str:
@@ -175,7 +179,7 @@ class Console:
         return ''.join(bits)
 
 
-def _init_console() -> NoReturn:
+def _init_console() -> None:
     if hasattr(Console, '_init'):
         return
 
