@@ -101,6 +101,7 @@ class Console:
             stream.write(message)
             endl = kwargs.pop('endl', self._endl)
             stream.write(endl)
+            stream.flush()
 
     def log(self, message: str, **kwargs: Any) -> None:
         self._print(self._stdout, message, **kwargs)
