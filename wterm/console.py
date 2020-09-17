@@ -188,3 +188,5 @@ def _init_console() -> None:
         setattr(Console, color, partialmethod(Console.style, fg=color))
 
     setattr(Console, '_init', True)
+
+_init_console()
